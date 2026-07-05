@@ -1,5 +1,5 @@
 /* SCRIB MedNet Go — service worker */
-const CACHE = 'mednet-go-v2.0.0';
+const CACHE = 'mednet-go-v2.0.1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-512-maskable.png'];
 self.addEventListener('install', function (e) {

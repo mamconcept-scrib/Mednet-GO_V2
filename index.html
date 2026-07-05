@@ -52,10 +52,10 @@ svg.ic{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8
 /* ---- en-tête ---- */
 #hdr{position:sticky; top:0; z-index:20; background:#0B2530; color:#fff;
   padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
-#hdr .brand{display:flex; align-items:flex-start; gap:10px}
+#hdr .brand{display:flex; align-items:center; gap:10px}
 #hdr .t1{font-size:15px; font-weight:700; letter-spacing:1.5px}
 #hdr .t2{font-size:11px; letter-spacing:1px; color:#8FB4BB; margin-top:2px; text-transform:uppercase}
-#hdr .logo{height:38px; width:auto; flex:none; margin-left:auto}
+#hdr .logo{height:62px; width:auto; flex:none; margin-left:auto; margin-right:2px}
 #hdr .chips{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap}
 .stc{display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px;
   font-size:11px; font-weight:600; white-space:nowrap}
@@ -224,15 +224,15 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 92px)}
   <div class="sub" id="lk-sub">Saisissez votre code à 6 chiffres</div>
   <div class="dots" id="lk-dots"></div>
   <div class="pad" id="lk-pad"></div>
-  <div class="foot mono">SCRIB MedNet Go · v2.0.0 · 100 % hors ligne</div>
+  <div class="foot mono">SCRIB MedNet Go · v2.0.1 · 100 % hors ligne</div>
 </div>
 
 <div id="app" class="hidden">
   <header id="hdr">
     <div class="brand">
       <div>
-        <div class="t1">MEDNET GO</div>
-        <div class="t2">Lecteur terrain · SCRIB · v2.0</div>
+        <div class="t1">SCRIB MEDNET GO</div>
+        <div class="t2">Lecteur terrain · v2.0.1</div>
       </div>
       <svg class="logo" viewBox="0 0 285 399" role="img" aria-label="SCRIB"><path fill="#FFFFFF" fill-rule="evenodd" d="M92 398 84 397 41 356 43 343 98 288 32 229 9 193 -1 150 -1 52 8 43 129 -1 253 49 254 157 247 190 229 222 160 289 170 300 161 308 150 299 147 302 161 316 160 329ZM137 290 139 287 131 280 140 271 149 278 189 240 212 216 230 185 237 153 237 60 126 17 16 60 16 146 23 182 39 165 35 147 43 136 63 134 74 143 76 157 73 164 64 172 51 173 30 195 44 215 104 155 75 125 73 119 97 119 106 101 115 158 126 120 181 120 133 171 126 173 113 165 53 226 65 237 113 191 126 186 157 185 158 175 165 165 172 162 189 164 198 179 197 190 190 199 183 203 167 199 124 202 76 246 110 277 121 278ZM116 140 107 88 94 116 71 115 70 97 76 84 95 72 113 73 127 82 146 72 158 72 171 77 183 92 184 115 121 117ZM57 160 62 156 62 150 53 145 48 155ZM180 190 185 185 185 179 176 174 170 179 170 185ZM90 385 121 353 85 318 52 352 58 356 81 332 86 339 64 363 68 367 91 344 97 350 75 374 79 376 101 353 106 360 84 383Z"/></svg>
     </div>
@@ -383,6 +383,24 @@ const CORE = (function(){
     if (m && m.length) return String(parseInt(m[m.length-1],10));
     return norm(v);
   }
+  function keysOf(v){
+    const out = [];
+    const s = String(v==null?'':v).trim();
+    if (!s) return out;
+    const c = s.toUpperCase().replace(/\s+/g,'');
+    if (c) out.push(c);
+    const g = s.match(/\d+/g);
+    if (g && g.length){
+      const add = function(x){
+        const nx = parseInt(x,10);
+        if (isNaN(nx)) return;
+        const k = '#'+nx;
+        if (out.indexOf(k) === -1) out.push(k);
+      };
+      add(g[0]); add(g[g.length-1]); add(g.join(''));
+    }
+    return out;
+  }
   function headerSigs(headers){
     const hn = headers.map(norm);
     const has = function(x){ return hn.indexOf(x) !== -1; };
@@ -402,13 +420,13 @@ const CORE = (function(){
   }
   return { SECTEURS:SECTEURS, norm:norm, decodeBytes:decodeBytes, sniffSep:sniffSep,
     parseCSV:parseCSV, cleanCell:cleanCell, buildDataset:buildDataset, findCol:findCol,
-    isEmptyVal:isEmptyVal, refKey:refKey, headerSigs:headerSigs, filledCount:filledCount };
+    isEmptyVal:isEmptyVal, refKey:refKey, keysOf:keysOf, headerSigs:headerSigs, filledCount:filledCount };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = CORE;
 
 /* ================= APPLICATION ================= */
 if (typeof window !== 'undefined' && window.document) (function(){
-const VERSION = '2.0.0';
+const VERSION = '2.0.1';
 const LOCK_MS = 120000;
 const LOGO_PATH = "M92 398 84 397 41 356 43 343 98 288 32 229 9 193 -1 150 -1 52 8 43 129 -1 253 49 254 157 247 190 229 222 160 289 170 300 161 308 150 299 147 302 161 316 160 329ZM137 290 139 287 131 280 140 271 149 278 189 240 212 216 230 185 237 153 237 60 126 17 16 60 16 146 23 182 39 165 35 147 43 136 63 134 74 143 76 157 73 164 64 172 51 173 30 195 44 215 104 155 75 125 73 119 97 119 106 101 115 158 126 120 181 120 133 171 126 173 113 165 53 226 65 237 113 191 126 186 157 185 158 175 165 165 172 162 189 164 198 179 197 190 190 199 183 203 167 199 124 202 76 246 110 277 121 278ZM116 140 107 88 94 116 71 115 70 97 76 84 95 72 113 73 127 82 146 72 158 72 171 77 183 92 184 115 121 117ZM57 160 62 156 62 150 53 145 48 155ZM180 190 185 185 185 179 176 174 170 179 170 185ZM90 385 121 353 85 318 52 352 58 356 81 332 86 339 64 363 68 367 91 344 97 350 75 374 79 376 101 353 106 360 84 383Z";
 const $ = function(s){ return document.querySelector(s); };
@@ -473,12 +491,24 @@ function indexDS(ds, kind){
     ds.cols = { nom:F(['nom','name']), site:F(['site']),
       sect:F(['departementbiomedical','departementsbiomedicaux']),
       ip:F(['adresseip','ip','ipaddress']), fab:F(['fabricant']), cat:F(['categorie']),
-      mod:F(['modele']), srvc:F(['service']), statut:F(['statut']) };
+      mod:F(['modele']), srvc:F(['service']), statut:F(['statut']),
+      bal:F(['balinventaire']), serie:F(['nserie']), photo:F(['photo']) };
   } else {
     ds.cols = { nom:F(['nom','name']), sect:F(['departement','departementbiomedical','departementsbiomedicaux']),
       ip:F(['ipaddress','adresseip','ip']), type:F(['type']), port:F(['port']),
       aet:F(['aetdicom']), host:F(['hostname','hostnamereseau']), proto:F(['protocole','protocol']),
       desc:F(['description']), statut:F(['statut']) };
+  }
+  ds.scan = new Map();
+  if (kind === 'eq'){
+    for (let i=0;i<ds.rows.length;i++){
+      const put = function(v){
+        CORE.keysOf(v).forEach(function(k){ if (!ds.scan.has(k)) ds.scan.set(k, i); });
+      };
+      if (ds.idIdx>=0) put(ds.rows[i][ds.idIdx]);
+      if (ds.cols.bal>=0 && !CORE.isEmptyVal(ds.rows[i][ds.cols.bal])) put(ds.rows[i][ds.cols.bal]);
+      if (ds.cols.serie>=0 && !CORE.isEmptyVal(ds.rows[i][ds.cols.serie])) put(ds.rows[i][ds.cols.serie]);
+    }
   }
 }
 function loadDS(ds, key, kind){
@@ -864,7 +894,16 @@ function renderFiche(){
   const LIM = 12;
   let hf = '', hx = '';
   for (let c=0;c<EQ.headers.length;c++){
-    const r = fieldRowHTML(EQ.headers[c], EQ.rows[i][c], corr[EQ.headers[c]], true, c);
+    let r;
+    if (c === EQ.cols.photo){
+      const fv = EQ.rows[i][c];
+      r = '<button class="row frow" data-photorow><span class="lab">'+esc(EQ.headers[c])+'</span>'+
+          '<span id="fi-photorow">'+(CORE.isEmptyVal(fv)
+            ? '<span class="tofill">'+ic('camera',13)+' à photographier…</span>'
+            : '<span class="fval">'+esc(fv)+'</span>')+'</span></button>';
+    } else {
+      r = fieldRowHTML(EQ.headers[c], EQ.rows[i][c], corr[EQ.headers[c]], true, c);
+    }
     if (c < LIM) hf += r; else hx += r;
   }
   h += '<div class="card">'+hf;
@@ -885,6 +924,13 @@ function renderFiche(){
   Array.prototype.forEach.call(root.querySelectorAll('[data-col]'), function(b){
     b.onclick = function(){ editField(key, parseInt(b.dataset.col,10)); };
   });
+  const pr = root.querySelector('[data-photorow]');
+  if (pr) pr.onclick = function(){
+    phByRef(key).then(function(list){
+      if (list.length) $('#fi-photos').scrollIntoView({behavior:'smooth'});
+      else openCamera(key);
+    });
+  };
   $('#fi-addnote').onclick = function(){ addNote(key, i); };
   renderPhotos(key);
   renderNotes(key);
@@ -892,6 +938,12 @@ function renderFiche(){
 function renderPhotos(key){
   phByRef(key).then(function(list){
     $('#fi-ph-title').innerHTML = 'Photos <span class="mut">('+list.length+')</span>';
+    const prv = $('#fi-photorow');
+    if (prv && list.length){
+      const pend = list.some(function(p){ return p.ts > lastExport; });
+      prv.innerHTML = '<span class="fval">'+list.length+' photo'+(list.length>1?'s':'')+'</span>'+
+        (pend ? ' <span class="ambchip">à exporter</span>' : '');
+    }
     let h = '';
     list.forEach(function(p){
       const u = URL.createObjectURL(p.blob); objURLs.push(u);
@@ -900,7 +952,7 @@ function renderPhotos(key){
     h += '<button class="padd" id="fi-addph" aria-label="Prendre une photo">'+ic('camera',22)+'</button>';
     const el = $('#fi-photos'); if (!el) return;
     el.innerHTML = h;
-    $('#fi-addph').onclick = function(){ needTech(function(){ openCamera(key); }); };
+    $('#fi-addph').onclick = function(){ openCamera(key); };
     Array.prototype.forEach.call(el.querySelectorAll('[data-ph]'), function(b){
       b.onclick = function(){
         confirmBox('Supprimer la photo ?','Elle sera retirée du téléphone.','Supprimer',true,function(){
@@ -942,7 +994,6 @@ function needTech(cb){
   };
 }
 function editField(key, colIdx){
-  needTech(function(){
     const colName = EQ.headers[colIdx];
     const existing = CORR[key] && CORR[key][colName];
     mOpen('<h3>'+esc(colName)+'</h3><div class="msub">Proposition de correction — exportée à part, le référentiel n\u2019est pas modifié.</div>'+
@@ -965,10 +1016,8 @@ function editField(key, colIdx){
       Jset('corr', CORR); mClose(); renderFiche(); refreshPending();
     };
     setTimeout(function(){ $('#m-val').focus(); }, 60);
-  });
 }
 function addNote(key, i){
-  needTech(function(){
     mOpen('<h3>Nouvelle note</h3><div class="msub">'+esc(eqName(i))+'</div>'+
       '<textarea id="m-note" rows="4" placeholder="Observation, déplacement, prise…"></textarea>'+
       '<div class="macts"><button class="btn btn-line" id="m-no">Annuler</button><button class="btn btn-acc" id="m-ok">Enregistrer</button></div>');
@@ -981,7 +1030,6 @@ function addNote(key, i){
       Jset('notes', NOTES); mClose(); renderNotes(key); refreshPending();
     };
     setTimeout(function(){ $('#m-note').focus(); }, 60);
-  });
 }
 
 /* ---- fiche serveur (lecture seule) ---- */
@@ -1298,12 +1346,17 @@ function scanFrame(){
   scanTimer = setTimeout(scanFrame, 180);
 }
 function onScanText(text){
-  const key = CORE.refKey(text);
-  if (EQ.idx.has(key)){
+  let hit = -1;
+  const ks = CORE.keysOf(text);
+  for (let k=0; k<ks.length && hit<0; k++){
+    if (EQ.scan && EQ.scan.has(ks[k])) hit = EQ.scan.get(ks[k]);
+  }
+  if (hit < 0 && EQ.idx.has(CORE.refKey(text))) hit = EQ.idx.get(CORE.refKey(text));
+  if (hit >= 0){
     closeScan();
-    S.fiche = key; show('fiche');
+    S.fiche = eqKey(hit); show('fiche');
   } else {
-    toast('Réf « '+text+' » introuvable dans le référentiel.');
+    toast('« '+text+' » introuvable (Réf, Bal Inventaire, n° série).');
     scanTimer = setTimeout(scanFrame, 700);
   }
 }
@@ -1402,6 +1455,10 @@ function unlockApp(){
   $('#app').classList.remove('hidden');
   show(S.view || 'parc');
   refreshPending();
+  if (!TECH && !L('askedTech')){
+    Lset('askedTech', '1');
+    needTech(function(){});
+  }
 }
 function lkPress(d){
   if (lkBuf.length >= 6) return;
